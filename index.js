@@ -1,131 +1,78 @@
-const availableColors = ["RED", "YELLOW", "BLUE", "GREEN"];
-
-let hasStarted = false;
-
-let sequence = [];
-
-let userSequence = [];
-
+const color_random = ["RED", "GREEN", "YELLOW", "BLUE", "WRONG"]
+let sequencecomp = [];
+let usersequence = [];
 let level = 0;
+startgame();
 
-function animateColorBox(color) {
-    document.getElementById(color).animate({ opacity: 0.3 }, { duration: 800 })
+function newsequence() {
+    usersequence = [];
+    ++level;
+    $("#level-title").text("LEVEL " + level);
+    var randomnumber = Math.floor(Math.random() * 4);
+    console.log(randomnumber);
+    var randomcolorchosen = color_random[randomnumber];
+    console.log(randomcolorchosen);
+    sequencecomp.push(randomcolorchosen);
+    console.log(sequencecomp);
+    $("#" + randomcolorchosen).animate({ opacity: 0.3 }, { duration: 800 }).animate({ opacity: 1 }, { duration: 0 });
+    var audio = new Audio("Audio/" + randomcolorchosen + ".mp3");
+    audio.play();
+    animatePress(randomcolorchosen);
 }
 
-const chooseRandomColor = () => availableColors[Math.floor(Math.random() * 4)];
-
-function playSound(name) {
-    if (name === "GREEN") {
-        var green = new Audio("Audio/green.mp3");
-        green.play();
-    } else if (name === "RED") {
-        var red = new Audio("Audio/red.mp3");
-        red.play();
-    } else if (name === "YELLOW") {
-        var yellow = new Audio("Audio/yellow.mp3");
-        yellow.play();
-    } else if (name === "BLUE") {
-        var blue = new Audio("Audio/blue.mp3");
-        blue.play();
-    } else if (name === "START") {
-        // TODO: ADD START SOUND
-    } else if (name === "WRONG") {
-        var wrong = new Audio("Audio/wrong.mp3");
-        wrong.play();
-    }
+function animatePress(currentColor) {
+    $("#" + currentColor).addClass("pressed");
+    setTimeout(function() {
+        $("#" + currentColor).removeClass("pressed");
+    }, 100);
 }
+
+$(".btn").click(function() {
+    var userchosencolor = $(this).attr("id");
+    animatePress(userchosencolor);
+    usersequence.push(userchosencolor);
+    console.log(usersequence);
+    var audio = new Audio("Audio/" + userchosencolor + ".mp3");
+    audio.play();
+    checkInput();
+});
 
 function checkInput() {
-
-    for (let k = 0; k < userSequence.length; k++) {
-        if (sequence[k] === userSequence[k]) {
-            if (sequence.length === userSequence.length) {
-                //level up
-                startNextLevel();
-            }
+    if (usersequence[usersequence.length - 1] === sequencecomp[usersequence.length - 1]) {
+        if (usersequence.length === sequencecomp.length) {
+            setTimeout(function() {
+                newsequence();
+            }, 1000);
         } else {
-            endGame();
+
         }
-
+    } else {
+        endGame();
     }
-
-}
-
-function startNextLevel() {
-    console.log(`Level up to ${level + 1 }`)
-        ++level;
-    const color = chooseRandomColor();
-    sequence.push(color);
-    userSequence = [];
-    animateColorBox(color);
-
 }
 
 function endGame() {
-    playSound("END")
-    console.log("Game Over");
-    level = 0;
-    userSequence = [];
-    sequence = []
-}
-
-function startGame() {
-    // listen for A-keypress
-    $(document).keypress(function() {
-        if (!hasStarted) {
-            console.log("Starting Game");
-            //Play start sound
-            playSound("START")
-                // choose random color
-            let color = chooseRandomColor();
-            //add color to the sequence
-            sequence.push(color);
-            animateColorBox(color);
-            ++level;
-            hasStarted = true;
-        }
-    });
-
-    // add click listeners to all 4 buttons
-    $(".btn").click(function(e) {
-        let chosenColor = e.target.id;
-        userSequence.push(chosenColor);
-        playSound(chosenColor);
-        checkInput();
-        animateColorBox(chosenColor)
-            // TODO: ADD CLICK ANIMATION
+    $("#level-title").text("Game Over, Press any key to restart");
+    var wrong = new Audio("Audio/WRONG.mp3");
+    wrong.play();
+    $("body").css("background-color", "red");
+    setTimeout(function() {
+        $("body").css("background-color", "#011F3F");
+    }, 500);
+    $(document).keypress(function(e) {
+        level = 0;
+        newsequence();
     })
 }
 
-startGame();
-
-/*
-
-SEQUENCE = ["GREEN", "RED", "YELLOW"]
-
-func ->  startGame()
-    - animate a random box
-    - store random selected color in an array
-    - add click event listner()
-
-func ->  checkInput()
-    - check for sequence match
-        - TRUE: nextLevel()
-        - FALSE: ENDGAME
-
-func ->  endGame()
-    - animate
-    - play wrong sound
-    - reset game
-
-*/
-/*
-
-arrow function
-target
-array
-small function in js
-flag variable
-const
-prefer let over var
-*/
+function startgame() {
+    $("#level-title").text("Press A Key to Start");
+    $(document).keypress(function(event) {
+        if (event.key === 'a' || event.key === 'A') {
+            console.log("Game is Started");
+            newsequence();
+        } else {
+            endGame();
+        }
+    })
+}
